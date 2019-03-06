@@ -110,7 +110,13 @@ def get_choices(cli, prog_name, args, incomplete):
                     break
     choices = []
     if optctx:
-        choices += [c if isinstance(c, tuple) else (c, None) for c in optctx.type.complete(ctx, incomplete)]
+        used_choices = set(ctx.params.get(optctx.name, []))
+        for c in optctx.type.complete(ctx, incomplete):
+            if isinstance(c, tuple):
+                if c[0] not in used_choices:
+                    choices.append(c)
+            elif c not in used_choices:
+                choices.append((c, None))
     else:
         for param in ctx.command.get_params(ctx):
             if (completion_configuration.complete_options or incomplete and not incomplete[:1].isalnum()) and isinstance(param, Option):
